@@ -5,47 +5,48 @@ var refreshInterval = 3000;
 var db = new sql.Database(fs.readFileSync('../test.sqlite'));
 // ignore invalid data, just small notification
 // try to handle various database schema, take user input to help
+// TODO: take care of different column names
+//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
 
+// retrieve table names
 var tables = [];
 var tablesQuery = 'SELECT tbl_name FROM sqlite_master WHERE type="table"';
 db.each(tablesQuery, {}, (row) => {
   tables.push(row.tbl_name);
 });
 
-var metrics = [];
-var metricsQuery = 'select distinct name from $table';
-tables.forEach((table) => {
-  db.each(metricsQuery, {$table:table}, (metric) => {
-    // add distinct to metrics
+// 
+// use join instead?
+function buildUnionQuery(column, tables, whereCond) {
+  var query = 'SELECT ' + column + ' FROM ';
+  tables.forEach((table, index) => {
+    if (index == tables.length-1)
+      query +=  (whereCond === undefined) ? table + ';'
+                                          : table + ' WHERE ' + whereCond + ';';
+    else query += table + ' UNION ' + query;
   });
-  //metrics.append
+  return query;
 }
-console.log(tables);
-//console.log(db.exec(tablesQuery)[0].values);
-// find distinct metric names
-// db.each
-//console.log(db.exec('select distinct value from gauges')[0].values[0][0]);
 
-//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
-//var allMetrics = db.exec(query)[0];
-//console.log(allMetrics);
-//console.log(db.exec()[0]);
-//for (var metric in metrics) {
-  //// more efficient query..
-  //db.exec('SELECT * FROM Gauges')[0].values.forEach((row) => {
-    //gauges.timestamps.push(row[0]);
-    //gauges.values.push(row[2]);
-  //});
-//}
+var metrics = [];
+var namesQuery = buildUnionQuery('DISTINCT name', tables);
 
-//var data = [
-  //{x: gauges.timestamps,
-  //y: gauges.values,
-  //type: 'scatter',
-  //name: 'gauges'}];
+db.each(namesQuery, {}, (metric) => {
+  // plotly format: {name:name, type:type, x:timestamps, y:values}
+  //console.log(metric);
+
+  var timestampQuery = buildUnionQuery('timestamp', tables, 'name='+metric.name);
+  metric.x = db.exec(timestampQuery);
+  console.log(metric.x[0]);
+  //var valuesQuery = buildUnionQuery('value', tables);
+  //metric.y = db.exec(valuesQuery);
+  //metric.type = 'scatter';
+  //metrics.push(metric);
+});
+//console.log(metrics);
 
 //var layout = {displayModeBar: true, scrollZoom: true};
-//plotly.newplot('plotdiv', data, null, layout);
+//plotly.newplot('plotdiv', metrics, null, layout);
 
 //setInterval(() => {
   //var d = plotdiv.data;
