@@ -3,10 +3,10 @@ var sql = require('sql.js'),
 
 var refreshInterval = 3000;
 var db = new sql.Database(fs.readFileSync('../test.sqlite'));
+// TODO: take care of different column names, SELECT ... AS to convert
+//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
 // ignore invalid data, just small notification
 // try to handle various database schema, take user input to help
-// TODO: take care of different column names
-//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
 
 // retrieve table names
 var tables = [];
@@ -15,15 +15,14 @@ db.each(tablesQuery, {}, (row) => {
   tables.push(row.tbl_name);
 });
 
-// 
-// use join instead?
 function buildUnionQuery(column, tables, whereCond) {
   var query = 'SELECT ' + column + ' FROM ';
+  var whereStr = (whereCond === undefined) ? '' : ' WHERE ' + whereCond;
+
   tables.forEach((table, index) => {
     if (index == tables.length-1)
-      query +=  (whereCond === undefined) ? table + ';'
-                                          : table + ' WHERE ' + whereCond + ';';
-    else query += table + ' UNION ' + query;
+      query += table + whereStr + ';';
+    else query += table + whereStr + ' UNION ' + query;
   });
   return query;
 }
@@ -32,21 +31,21 @@ var metrics = [];
 var namesQuery = buildUnionQuery('DISTINCT name', tables);
 
 db.each(namesQuery, {}, (metric) => {
-  // plotly format: {name:name, type:type, x:timestamps, y:values}
-  //console.log(metric);
-
-  var timestampQuery = buildUnionQuery('timestamp', tables, 'name='+metric.name);
-  metric.x = db.exec(timestampQuery);
-  console.log(metric.x[0]);
-  //var valuesQuery = buildUnionQuery('value', tables);
-  //metric.y = db.exec(valuesQuery);
-  //metric.type = 'scatter';
-  //metrics.push(metric);
+  // plotly format: metric = {name:name, x:timestamps, y:values, type:type}
+  var dataQuery = buildUnionQuery('timestamp, value', tables,
+                                  'name="' + metric.name + '"');
+  var data = db.exec(dataQuery)[0].values;
+  metric.x = []; metric.y = [];
+  data.forEach((element) => {
+    metric.x.push(element[0]);
+    metric.y.push(element[1]);
+  });
+  metric.type = 'scatter';
+  metrics.push(metric);
 });
-//console.log(metrics);
 
-//var layout = {displayModeBar: true, scrollZoom: true};
-//plotly.newplot('plotdiv', metrics, null, layout);
+var layout = {displayModeBar: true, scrollZoom: true};
+Plotly.newPlot('plotdiv', metrics, null, layout);
 
 //setInterval(() => {
   //var d = plotdiv.data;
