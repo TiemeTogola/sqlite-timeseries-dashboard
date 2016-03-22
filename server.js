@@ -18,6 +18,11 @@ app.get('/',(req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/plot.js',(req, res) => {
+    res.sendFile(__dirname + '/plot.js');
+});
+
+
 io.on('connection', (socket) => {
   setInterval(() => {
     socket.emit('refresh', collectData());

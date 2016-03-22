@@ -1,7 +1,7 @@
 // TODO: take host from config
-var socket = io.connect('http://localhost');
+var socket = io();
 
-var metrics = {};
+var metrics = [{name:'',type:'',x:[],y:[]}];
 var layout = {displayModeBar: true, scrollZoom: true};
 Plotly.newPlot('plotdiv', metrics, null, layout);
 
