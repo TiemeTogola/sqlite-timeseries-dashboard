@@ -1,0 +1,25 @@
+{
+  "author": "Tieme Togola <tiemetof@hotmail.com>",
+  "description": "A simple web dashboard built with Plotly.js to view time series data from SQLite in real time.",
+  "name": "sqlite-timeseries-dashboard",
+  "version": "0.0.1",
+  "main": "server.js",
+  "dependencies": {
+    "sql.js": "*",
+    "express": "*",
+    "socket.io": "*"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TiemeTogola/sqlite-timeseries-dashboard.git"
+  },
+  "keywords": [
+    "sqlite",
+    "timeseries",
+    "dashboard"
+  ]
+}
