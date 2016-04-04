@@ -1,16 +1,17 @@
+// TODO: take care of different column names, SELECT ... AS to convert
+// sqlite file path as argument
+//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
+// ignore invalid data, just small notification
+// try to handle various database schema, regex, take user input to help
+// triggers?
+
 var sql = require('sql.js'),
     fs = require('fs'),
     app = require('express')(),
     server = require('http').createServer(app),
     io = require('socket.io')(server);
 
-var refreshInterval = 5000;
-// TODO: take care of different column names, SELECT ... AS to convert
-//var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
-// ignore invalid data, just small notification
-// try to handle various database schema, take user input to help
-// triggers?
-
+var refreshInterval = 5000; // milliseconds
 server.listen('8000');
 
 // routing
@@ -51,6 +52,8 @@ function collectData() {
     });
 
     var metrics = [];
+    if (tables.length == 0) return metrics;
+
     var namesQuery = buildUnionQuery('DISTINCT name', tables);
 
     db.each(namesQuery, {}, (metric) => {
