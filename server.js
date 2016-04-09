@@ -1,5 +1,5 @@
 // TODO: take care of different column names, SELECT ... AS to convert
-// sqlite file path as argument
+// sqlite file path as argument, port as arg, ...
 //var tableInfo = 'PRAGMA table_info(' + tables[i] + ')';
 // ignore invalid data, just small notification
 // try to handle various database schema, regex, take user input to help
@@ -13,6 +13,7 @@ var sql = require('sql.js'),
 
 var refreshInterval = 5000; // milliseconds
 server.listen('8000');
+console.log('server listening on port ' + server.address().port);
 
 // routing
 app.get('/',(req, res) => {
